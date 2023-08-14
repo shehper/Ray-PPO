@@ -386,7 +386,7 @@ if __name__ == "__main__":
                      "losses/entropy": output['entropy_loss'],
                      "losses/approx_kl": output['approx_kl'],
                      "losses/clipfrac": output['clipfrac'],
-                     "losses/explained_variance": output['clipfrac'],
+                     "losses/explained_variance": output['explained_var'],
                      "charts/SPS": SPS
                      }
                 ))
