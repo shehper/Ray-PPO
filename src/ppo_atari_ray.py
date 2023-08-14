@@ -87,7 +87,7 @@ def parse_args():
 def make_env(env_id, seed, idx, capture_video, run_name):
     def thunk():
         env = gym.make(env_id)
-        env = gym.wrappers.RecordEpisodeStatistics(env)
+        # env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
             if idx == 0:
                 env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
@@ -179,10 +179,6 @@ class Logging_Data:
 @ray.remote
 class Rollout:
     def __init__(self, env_callable):
-        # random.seed(env_seed)
-        # np.random.seed(env_seed)
-        # torch.manual_seed(env_seed)
-        # torch.backends.cudnn.deterministic = args.torch_deterministic # not sure what this does
         self.env = env_callable()
         self.obs = torch.zeros((args.num_steps,) + self.env.observation_space.shape)
         self.actions = torch.zeros((args.num_steps,) + self.env.action_space.shape)
@@ -196,8 +192,8 @@ class Rollout:
         self.next_obs = torch.Tensor(self.env.reset()).to(device)
         self.next_done = torch.zeros(1).to(device)
 
-        # self.episode_return = 0
-        # self.episode_length = 0
+        self.episode_return = 0
+        self.episode_length = 0
 
     def get_env_spaces_data(self):
         return self.env.observation_space.shape, self.env.action_space.n
@@ -219,27 +215,27 @@ class Rollout:
             self.next_obs = torch.Tensor(self.next_obs).to(device)
             self.next_done = torch.Tensor([done]).to(device) # different
             
-            # self.episode_return += reward
-            # self.episode_length += 1
+            self.episode_return += reward
+            self.episode_length += 1
 
             if done:
-                for item in info:
-                    if "episode" in item.keys():
-                        print(f"global_step={global_step}, episodic_return={item['episode']['r']}")
-                        ray.get(logging_data.log_data.remote(
-                            {"charts/episodic_return": item["episode"]["r"],
-                            "charts/episodic_length": item["episode"]["l"]}
-                        ))
-                        break
+                # for item in info:
+                #     if "episode" in item.keys():
+                #         print(f"global_step={global_step}, episodic_return={item['episode']['r']}")
+                #         ray.get(logging_data.log_data.remote(
+                #             {"charts/episodic_return": item["episode"]["r"],
+                #             "charts/episodic_length": item["episode"]["l"]}
+                #         ))
+                #         break
 
-                # global_step = ray.get(logging_data.get_global_step.remote())
-                # print(f"global_step={global_step}, episodic_return={self.episode_return}")
-                # ray.get(logging_data.log_data.remote(
-                #     {"charts/episodic_return": self.episode_return,
-                #      "charts/episodic_length": self.episode_length}
-                # ))
-                # self.episode_length = self.episode_return = 0
-                # self.env.reset()
+                global_step = ray.get(logging_data.get_global_step.remote())
+                print(f"global_step={global_step}, episodic_return={self.episode_return}")
+                ray.get(logging_data.log_data.remote(
+                    {"charts/episodic_return": self.episode_return,
+                     "charts/episodic_length": self.episode_length}
+                ))
+                self.episode_length = self.episode_return = 0
+                self.env.reset()
 
 
 
