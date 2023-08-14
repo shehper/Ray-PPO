@@ -196,8 +196,8 @@ class Rollout:
         self.next_obs = torch.Tensor(self.env.reset()).to(device)
         self.next_done = torch.zeros(1).to(device)
 
-        self.episode_return = 0
-        self.episode_length = 0
+        # self.episode_return = 0
+        # self.episode_length = 0
 
     def get_env_spaces_data(self):
         return self.env.observation_space.shape, self.env.action_space.n
@@ -219,8 +219,8 @@ class Rollout:
             self.next_obs = torch.Tensor(self.next_obs).to(device)
             self.next_done = torch.Tensor([done]).to(device) # different
             
-            self.episode_return += reward
-            self.episode_length += 1
+            # self.episode_return += reward
+            # self.episode_length += 1
 
             if done:
                 for item in info:
