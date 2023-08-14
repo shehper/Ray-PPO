@@ -223,14 +223,24 @@ class Rollout:
             self.episode_length += 1
 
             if done:
-                global_step = ray.get(logging_data.get_global_step.remote())
-                print(f"global_step={global_step}, episodic_return={self.episode_return}")
-                ray.get(logging_data.log_data.remote(
-                    {"charts/episodic_return": self.episode_return,
-                     "charts/episodic_length": self.episode_length}
-                ))
-                self.episode_length = self.episode_return = 0
-                self.env.reset()
+                for item in info:
+                    if "episode" in item.keys():
+                        print(f"global_step={global_step}, episodic_return={item['episode']['r']}")
+                        ray.get(logging_data.log_data.remote(
+                            {"charts/episodic_return": item["episode"]["r"],
+                            "charts/episodic_length": item["episode"]["l"]}
+                        ))
+                        break
+
+                # global_step = ray.get(logging_data.get_global_step.remote())
+                # print(f"global_step={global_step}, episodic_return={self.episode_return}")
+                # ray.get(logging_data.log_data.remote(
+                #     {"charts/episodic_return": self.episode_return,
+                #      "charts/episodic_length": self.episode_length}
+                # ))
+                # self.episode_length = self.episode_return = 0
+                # self.env.reset()
+
 
 
         with torch.no_grad():
