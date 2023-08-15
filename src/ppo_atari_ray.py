@@ -219,6 +219,7 @@ class Rollout:
                     {"charts/episodic_return": info['episode']['r'],
                      "charts/episodic_length": info['episode']['l']}
                 ))
+                self.env.reset()
 
         with torch.no_grad():
             next_value = agent.get_value(torch.unsqueeze(self.next_obs,dim=0)).reshape(1, -1)
