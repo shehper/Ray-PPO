@@ -87,7 +87,7 @@ def parse_args():
 def make_env(env_id, seed, idx, capture_video, run_name):
     def thunk():
         env = gym.make(env_id)
-        # env = gym.wrappers.RecordEpisodeStatistics(env)
+        env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
             if idx == 0:
                 env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
@@ -192,9 +192,6 @@ class Rollout:
         self.next_obs = torch.Tensor(self.env.reset()).to(device)
         self.next_done = torch.zeros(1).to(device)
 
-        self.episode_return = 0
-        self.episode_length = 0
-
     def get_env_spaces_data(self):
         return self.env.observation_space.shape, self.env.action_space.n
         
@@ -213,31 +210,15 @@ class Rollout:
             self.next_obs, reward, done, info = self.env.step(torch.squeeze(action).cpu().numpy())
             self.rewards[step] = torch.tensor(reward).to(device).view(-1) # different
             self.next_obs = torch.Tensor(self.next_obs).to(device)
-            self.next_done = torch.Tensor([done]).to(device) # different
-            
-            self.episode_return += reward
-            self.episode_length += 1
+            self.next_done = torch.Tensor([done]).to(device) # different       
 
-            if done:
-                # for item in info:
-                #     if "episode" in item.keys():
-                #         print(f"global_step={global_step}, episodic_return={item['episode']['r']}")
-                #         ray.get(logging_data.log_data.remote(
-                #             {"charts/episodic_return": item["episode"]["r"],
-                #             "charts/episodic_length": item["episode"]["l"]}
-                #         ))
-                #         break
-
+            if 'episode' in info.keys(): # RecordEpisodeStatistics includes 'episode' in info when done
                 global_step = ray.get(logging_data.get_global_step.remote())
-                print(f"global_step={global_step}, episodic_return={self.episode_return}")
+                print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
                 ray.get(logging_data.log_data.remote(
-                    {"charts/episodic_return": self.episode_return,
-                     "charts/episodic_length": self.episode_length}
+                    {"charts/episodic_return": info['episode']['r'],
+                     "charts/episodic_length": info['episode']['l']}
                 ))
-                self.episode_length = self.episode_return = 0
-                self.env.reset()
-
-
 
         with torch.no_grad():
             next_value = agent.get_value(torch.unsqueeze(self.next_obs,dim=0)).reshape(1, -1)
