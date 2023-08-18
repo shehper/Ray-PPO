@@ -65,6 +65,6 @@ done
 # __doc_worker_ray_end__
 
 # __doc_script_start__
-python -u src/ppo_atari_ray.py --track=True "$SLURM_CPUS_PER_TASK"
+python -u src/ppo_atari_ray.py "$SLURM_CPUS_PER_TASK" --track=True 
 deactivate
 
