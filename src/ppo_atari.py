@@ -157,6 +157,7 @@ if __name__ == "__main__":
             name=run_name,
             monitor_gym=True,
             save_code=True,
+            mode="offline",
         )
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
