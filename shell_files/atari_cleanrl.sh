@@ -12,7 +12,7 @@
 
 # Number of gpus per node is specified as #SBATCH --gpus-per-node=2
 
-source ../env/bin/activate
-python ppo_atari.py --track=True
+source ./env/bin/activate
+python src/ppo_atari.py --track=True
 deactivate
 
