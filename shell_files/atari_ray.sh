@@ -11,7 +11,7 @@
 #SBATCH --gpus-per-task=0
 #SBATCH -t 12:00:00  # time requested in hour:minute:second
 
-source ../env/bin/activate
+source ./env/bin/activate
 
 # __doc_head_address_start__
 # Getting the node names
@@ -65,6 +65,6 @@ done
 # __doc_worker_ray_end__
 
 # __doc_script_start__
-python -u ../src/ppo_atari_ray.py --track=True "$SLURM_CPUS_PER_TASK"
+python -u src/ppo_atari_ray.py --track=True "$SLURM_CPUS_PER_TASK"
 deactivate
 

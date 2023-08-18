@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH --partition=main           # Partition (job queue)
 #SBATCH --requeue                   # Return job to the queue if preempted
-#SBATCH --job-name=atari-pong         # Assign a short name to your job
+#SBATCH --job-name=atari-cleanrl         # Assign a short name to your job
 #SBATCH -N 1      # nodes requested
 #SBATCH -n 1      # tasks requested
 #SBATCH -c 8      # cores requested
