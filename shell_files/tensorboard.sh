@@ -8,4 +8,4 @@ source ./env/bin/activate
 
 echo "Starting ${logdir} on port ${port}."
 
-tensorboard --logdir=$logdir 
+tensorboard --logdir=$logdir --port=$port
