@@ -10,6 +10,7 @@
 ### should be 'gres' instead.
 #SBATCH --gpus-per-task=0
 #SBATCH -t 12:00:00  # time requested in hour:minute:second
+#SBATCH --nodelist=hal0168
 
 source ./env/bin/activate
 
