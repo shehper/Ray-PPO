@@ -292,12 +292,14 @@ def update_parameters(agent, optimizer, rollout_data, args):
                 pg_loss = torch.max(pg_loss1, pg_loss2).mean()
             else: # kl penalty loss
                 pg_loss = (-mb_advantages * ratio + args.kl_penalty * 0.5 * logratio ** 2).mean()
+                print("using policy loss with KL penalty")
                 # The estimator 0.5 * (logratio ** 2).mean() of KL penalty is biased but has low variance. It is described in 
                 # http://joschu.net/blog/kl-approx.html and is used in PPG implementation:
                 # https://github.com/openai/phasic-policy-gradient/blob/7295473f0185c82f9eb9c1e17a373135edd8aacc/phasic_policy_gradient/ppo.py#L104
                 
-                # WARNING: In the original paper on PPO, kl_penalty coefficient is adjusted based on KL divergence after each update (eq 8 in paper).
-                # This adjustment is not performed in the paper on PPG. (See section 3.5.)
+                # WARNING: In the original paper on PPO, kl_penalty coefficient is either fixed (which is what we use here) or 
+                # adjusted after each update (see eq 8 in the paper). Here we use fixed KL penalty as this is used in the PPG paper (see section 3.5)
+                # and our goal is to implement PPO-EWMA with KL penalty loss.
 
             # Value loss
             newvalue = newvalue.view(-1) # value computed by NN with updated parameters
