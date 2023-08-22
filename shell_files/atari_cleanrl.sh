@@ -9,7 +9,7 @@
 #SBATCH --output=slurm.%j.out  # send stdout to outfile
 #SBATCH --error=slurm.%j.err  # send stderr to errfile
 #SBATCH -t 24:00:00  # time requested in hour:minute:second
-#SBATCH --nodelist=hal0168
+#SBATCH --nodelist=hal0049
 
 source ./env/bin/activate
 python src/ppo_atari.py --track=True
