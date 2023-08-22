@@ -68,6 +68,8 @@ def parse_args():
         help="Toggles advantages normalization")
     parser.add_argument("--clip-coef", type=float, default=0.1,
         help="the surrogate clipping coefficient")
+    parser.add_argument("--kl-penalty", type=float, default=0.0,
+        help="the coefficient of KL penalty when using policy loss with kl penalty")
     parser.add_argument("--clip-vloss", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="Toggles whether or not to use a clipped loss for the value function, as per the paper.")
     parser.add_argument("--ent-coef", type=float, default=0.01,
@@ -283,9 +285,19 @@ def update_parameters(agent, optimizer, rollout_data, args):
                 mb_advantages = (mb_advantages - mb_advantages.mean()) / (mb_advantages.std() + 1e-8)
 
             # Policy loss
-            pg_loss1 = -mb_advantages * ratio
-            pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef, 1 + args.clip_coef)
-            pg_loss = torch.max(pg_loss1, pg_loss2).mean()
+            # Usage: pass --clip-coef=0.0 --kl-penalty=.. when using KL penalty loss instead of clip loss
+            if args.clip_coef > 0.0: # clip loss
+                pg_loss1 = -mb_advantages * ratio
+                pg_loss2 = -mb_advantages * torch.clamp(ratio, 1 - args.clip_coef, 1 + args.clip_coef)
+                pg_loss = torch.max(pg_loss1, pg_loss2).mean()
+            else: # kl penalty loss
+                pg_loss = (-mb_advantages * ratio + args.kl_penalty * 0.5 * logratio ** 2).mean()
+                # The estimator 0.5 * (logratio ** 2).mean() of KL penalty is biased but has low variance. It is described in 
+                # http://joschu.net/blog/kl-approx.html and is used in PPG implementation:
+                # https://github.com/openai/phasic-policy-gradient/blob/7295473f0185c82f9eb9c1e17a373135edd8aacc/phasic_policy_gradient/ppo.py#L104
+                
+                # WARNING: In the original paper on PPO, kl_penalty coefficient is adjusted based on KL divergence after each update (eq 8 in paper).
+                # This adjustment is not performed in the paper on PPG. (See section 3.5.)
 
             # Value loss
             newvalue = newvalue.view(-1) # value computed by NN with updated parameters
