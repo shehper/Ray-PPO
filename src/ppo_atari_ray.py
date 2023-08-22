@@ -182,8 +182,10 @@ class Rollout:
         random.seed(args.seed)
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
-        torch.backends.cudnn.deterministic = args.torch_deterministic
-        
+        # torch.backends.cudnn.deterministic = args.torch_deterministic
+        eval('setattr(torch.backends.cudnn, "benchmark", True)') 
+        # https://github.com/ray-project/ray/issues/8569
+
         self.env = env_callable()
         self.obs = torch.zeros((args.num_steps,) + self.env.observation_space.shape)
         self.actions = torch.zeros((args.num_steps,) + self.env.action_space.shape)
