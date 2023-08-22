@@ -292,7 +292,6 @@ def update_parameters(agent, optimizer, rollout_data, args):
                 pg_loss = torch.max(pg_loss1, pg_loss2).mean()
             else: # kl penalty loss
                 pg_loss = (-mb_advantages * ratio + args.kl_penalty * 0.5 * logratio ** 2).mean()
-                print("using policy loss with KL penalty")
                 # The estimator 0.5 * (logratio ** 2).mean() of KL penalty is biased but has low variance. It is described in 
                 # http://joschu.net/blog/kl-approx.html and is used in PPG implementation:
                 # https://github.com/openai/phasic-policy-gradient/blob/7295473f0185c82f9eb9c1e17a373135edd8aacc/phasic_policy_gradient/ppo.py#L104
