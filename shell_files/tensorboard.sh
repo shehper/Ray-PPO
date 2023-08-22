@@ -18,4 +18,6 @@ source ./env/bin/activate
 
 # echo "Starting ${logdir} on port ${port}."
 
-tensorboard --logdir=/scratch/mas1107/rlalgo --port=16006
+# tensorboard --logdir=/scratch/mas1107/rlalgo --port=16006
+
+srun tensorboard --host=0.0.0.0 --port=8889
