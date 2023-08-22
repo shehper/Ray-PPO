@@ -20,4 +20,4 @@ source ./env/bin/activate
 
 # tensorboard --logdir=/scratch/mas1107/rlalgo --port=16006
 
-srun tensorboard --host=0.0.0.0 --port=8889
+srun tensorboard --logdir=/scratch/mas1107/rlalgo --host=0.0.0.0 --port=8889
