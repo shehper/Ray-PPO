@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH --partition=gpu          # Partition (job queue)
+#SBATCH --exclusive
 #SBATCH --requeue                 # Return job to the queue if preempted
 #SBATCH --job-name=atari_cleanrl_gpu       # Assign a short name to your job
 #SBATCH --nodes=1                 # Number of nodes you require
