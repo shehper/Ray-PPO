@@ -179,6 +179,11 @@ class Logging_Data:
 @ray.remote
 class Rollout:
     def __init__(self, env_callable):
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        torch.backends.cudnn.deterministic = args.torch_deterministic
+        
         self.env = env_callable()
         self.obs = torch.zeros((args.num_steps,) + self.env.observation_space.shape)
         self.actions = torch.zeros((args.num_steps,) + self.env.action_space.shape)
