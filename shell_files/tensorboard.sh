@@ -16,6 +16,6 @@
 
 source ./env/bin/activate
 
-echo "Starting ${logdir} on port ${port}."
+# echo "Starting ${logdir} on port ${port}."
 
-tensorboard --logdir=$logdir --port=$port
+tensorboard --logdir=/scratch/mas1107/rlalgo --port=16006
