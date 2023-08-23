@@ -24,7 +24,8 @@ print(torch.__version__)
 print(torch.cuda.is_available())
 
 import ray
-ray.init(log_to_driver=False)
+# ray.init(log_to_driver=False)
+ray.init()
 
 def parse_args():
     # fmt: off
@@ -176,6 +177,7 @@ class Logging_Data:
 
     def log_data(self, data):
         for key, value in data.items():
+            print(key, value)
             self.writer.add_scalar(key, value, self.global_step)
 
     def get_global_step(self):
@@ -379,6 +381,11 @@ if __name__ == "__main__":
         global_step = ray.get(logging_data.get_global_step.remote())
         SPS = int(global_step / (time.time() - start_time))
 
+        # for key, value in output.items():
+        #     print('for key ', key, ' type of value is: ',  type(value))
+        # print(output['approx_kl'].device)
+        # print(output['explained_var'].device)
+        # print(type(optimizer.param_groups[0]["lr"]))
 
         ray.get(logging_data.log_data.remote(
                     {"charts/learning_rate": optimizer.param_groups[0]["lr"],
