@@ -177,7 +177,6 @@ class Logging_Data:
 
     def log_data(self, data):
         for key, value in data.items():
-            print(key, value)
             self.writer.add_scalar(key, value, self.global_step)
 
     def get_global_step(self):
@@ -392,9 +391,9 @@ if __name__ == "__main__":
                      "losses/value_loss": output['v_loss'],
                      "losses/policy_loss": output['pg_loss'],
                      "losses/entropy": output['entropy_loss'],
-                     "losses/approx_kl": output['approx_kl'],
+                     "losses/approx_kl": output['approx_kl'].cpu(),
                      "losses/clipfrac": output['clipfrac'],
-                     "losses/explained_variance": output['explained_var'],
+                     "losses/explained_variance": output['explained_var'].cpu(),
                      "charts/SPS": SPS
                      }
                 ))
