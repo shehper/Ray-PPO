@@ -12,6 +12,7 @@
 #SBATCH --error=./slurm.gpu.%N.%j.err
 #SBATCH --gres=gpu:1
 #SBATCH --exclude=cuda[001-008],gpu[005-008],pascal[001-010],volta[001-003]  # blacklist slow nodes
+#SBATCH --nodelist=gpu016
 
 source ./env/bin/activate
 python src/ppo_atari.py --track=True
