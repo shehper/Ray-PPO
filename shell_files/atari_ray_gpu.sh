@@ -12,7 +12,8 @@
 #SBATCH --error=./slurm.gpu.%N.%j.err
 #SBATCH --gres=gpu:1
 #SBATCH --gpus-per-task=1
-##SBATCH --exclude=cuda[001-008],gpu[005-008],pascal[001-010],volta[001-003]  # blacklist slow nodes
+#SBATCH --exclude=cuda[001-008],gpu[005-008],pascal[001-010],volta[001-003]  # blacklist slow nodes
+#SBATCH --nodelist=gpu017
 
 source ./env/bin/activate
 
@@ -68,6 +69,6 @@ done
 # __doc_worker_ray_end__
 
 # __doc_script_start__
-python -u src/ppo_atari_ray_gpu.py --track=True 
+python -u src/ppo_atari_ray.py --track=True 
 deactivate
 
