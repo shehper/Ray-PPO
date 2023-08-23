@@ -20,6 +20,7 @@ from stable_baselines3.common.atari_wrappers import (  # isort:skip
     NoopResetEnv,
 )
 
+
 import ray
 ray.init(log_to_driver=False)
 
@@ -198,8 +199,8 @@ class Rollout:
         self.advantages = torch.zeros((args.num_steps,))
         self.returns = torch.zeros((args.num_steps,))
         
-        self.next_obs = torch.Tensor(self.env.reset()).to(device)
-        self.next_done = torch.zeros(1).to(device)
+        self.next_obs = torch.Tensor(self.env.reset())
+        self.next_done = torch.zeros(1)
 
     def get_env_spaces_data(self):
         return self.env.observation_space.shape, self.env.action_space.n
@@ -217,9 +218,9 @@ class Rollout:
             self.logprobs[step] = logprob
 
             self.next_obs, reward, done, info = self.env.step(torch.squeeze(action).cpu().numpy())
-            self.rewards[step] = torch.tensor(reward).to(device).view(-1) # different
-            self.next_obs = torch.Tensor(self.next_obs).to(device)
-            self.next_done = torch.Tensor([done]).to(device) # different       
+            self.rewards[step] = torch.tensor(reward).view(-1) # different
+            self.next_obs = torch.Tensor(self.next_obs)
+            self.next_done = torch.Tensor([done]) # different       
 
             if 'episode' in info.keys(): # RecordEpisodeStatistics includes 'episode' in info when done
                 global_step = ray.get(logging_data.get_global_step.remote())
@@ -256,12 +257,12 @@ class Rollout:
 def update_parameters(agent, optimizer, rollout_data, args):
 
     b_inds = np.arange(args.batch_size) # indices of batch_size
-    b_obs = torch.cat([result['obs'] for result in rollout_data], axis=0)
-    b_logprobs = torch.cat([result['logprobs'] for result in rollout_data], axis=0)
-    b_actions = torch.cat([result['actions'] for result in rollout_data], axis=0)
-    b_advantages = torch.cat([result['advantages'] for result in rollout_data], axis=0)
-    b_returns = torch.cat([result['returns'] for result in rollout_data], axis=0)
-    b_values = torch.cat([result['values'] for result in rollout_data], axis=0)
+    b_obs = torch.cat([result['obs'] for result in rollout_data], axis=0).to(device)
+    b_logprobs = torch.cat([result['logprobs'] for result in rollout_data], axis=0).to(device)
+    b_actions = torch.cat([result['actions'] for result in rollout_data], axis=0).to(device)
+    b_advantages = torch.cat([result['advantages'] for result in rollout_data], axis=0).to(device)
+    b_returns = torch.cat([result['returns'] for result in rollout_data], axis=0).to(device)
+    b_values = torch.cat([result['values'] for result in rollout_data], axis=0).to(device)
 
     clipfracs = []
 
@@ -327,9 +328,9 @@ def update_parameters(agent, optimizer, rollout_data, args):
             if approx_kl > args.target_kl:
                 break
 
-    y_pred, y_true = b_values.cpu().numpy(), b_returns.cpu().numpy() 
-    var_y = np.var(y_true)
-    explained_var = np.nan if var_y == 0 else 1 - np.var(y_true - y_pred) / var_y
+    y_pred, y_true = b_values, b_returns
+    var_y = torch.var(y_true)
+    explained_var = np.nan if var_y.item() == 0 else 1 - torch.var(y_true - y_pred) / var_y
 
     output = {"pg_loss": pg_loss.item(), "v_loss": v_loss.item(), "entropy_loss": entropy_loss.item(), 
               "approx_kl": approx_kl, "explained_var": explained_var, "clipfrac": np.mean(clipfracs)}
@@ -351,9 +352,6 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     envs = [Rollout.remote(make_env(args.env_id, args.seed + i, i, args.capture_video, run_name)) for i in range(args.num_envs)]
-    #assert isinstance(envs[0].env.action_space, gym.spaces.Discrete), "only discrete action space is supported"
-    # obs_space_shape, action_space_n = ray.get(envs[0].get_env_spaces_data.remote())
-    # agent = Agent(obs_space_shape, action_space_n).to(device)
     _, action_space_n = ray.get(envs[0].get_env_spaces_data.remote())
     agent = Agent(action_space_n).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
@@ -370,9 +368,13 @@ if __name__ == "__main__":
             optimizer.param_groups[0]["lr"] = lrnow
 
         # Collecting data through N parallel actors
+        if device != "cpu":
+            agent.to("cpu")
         rollout_data = ray.get([env.rollout.remote(agent, logging_data) for env in envs])
 
         # Updating parameters of neural networks
+        if device != "cpu":
+            agent.to(device)
         output = update_parameters(agent, optimizer, rollout_data, args)
         global_step = ray.get(logging_data.get_global_step.remote())
         SPS = int(global_step / (time.time() - start_time))
@@ -382,9 +384,9 @@ if __name__ == "__main__":
                      "losses/value_loss": output['v_loss'],
                      "losses/policy_loss": output['pg_loss'],
                      "losses/entropy": output['entropy_loss'],
-                     "losses/approx_kl": output['approx_kl'],
+                     "losses/approx_kl": output['approx_kl'].cpu(),
                      "losses/clipfrac": output['clipfrac'],
-                     "losses/explained_variance": output['explained_var'],
+                     "losses/explained_variance": output['explained_var'].cpu(),
                      "charts/SPS": SPS
                      }
                 ))
