@@ -10,6 +10,7 @@
 #SBATCH --time=08:00:00  # time requested in hour:minute:second
 #SBATCH --output=./slurm.gpu.%N.%j.out
 #SBATCH --error=./slurm.gpu.%N.%j.err
+#SBATCH --gres=gpu:1
 #SBATCH --gpus-per-task=1
 #SBATCH --exclude=cuda[001-008],gpu[005-008],pascal[001-010],volta[001-003]  # blacklist slow nodes
 
