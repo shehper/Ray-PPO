@@ -20,6 +20,9 @@ from stable_baselines3.common.atari_wrappers import (  # isort:skip
     NoopResetEnv,
 )
 
+print(torch.__version__)
+print(torch.cuda.is_available())
+
 import ray
 ray.init(log_to_driver=False)
 
@@ -375,6 +378,7 @@ if __name__ == "__main__":
         output = update_parameters(agent, optimizer, rollout_data, args)
         global_step = ray.get(logging_data.get_global_step.remote())
         SPS = int(global_step / (time.time() - start_time))
+
 
         ray.get(logging_data.log_data.remote(
                     {"charts/learning_rate": optimizer.param_groups[0]["lr"],
