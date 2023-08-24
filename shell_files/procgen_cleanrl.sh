@@ -1,17 +1,16 @@
-#!/bin/bash
-#SBATCH --partition=gpu          # Partition (job queue)
-#SBATCH --exclusive
-#SBATCH --requeue                 # Return job to the queue if preempted
-#SBATCH --job-name=atapri_cleanrl_gpu       # Assign a short name to your job
-#SBATCH --nodes=1                 # Number of nodes you require
-#SBATCH --ntasks=1                # Total # of tasks across all nodes
-#SBATCH --cpus-per-task=8        # Cores per task (>1 if multithread tasks)
-#SBATCH --mem=3000                # Real memory (RAM) required (MB)
-#SBATCH --time=24:00:00           # Total run time limit (HH:MM:SS)
-#SBATCH --output=./slurm.gpu.%N.%j.out
-#SBATCH --error=./slurm.gpu.%N.%j.err
-#SBATCH --gres=gpu:1
-#SBATCH --exclude=cuda[001-008],gpu[005-008],pascal[001-010],volta[001-003]  # blacklist slow nodes
+#!/bin/sh
+#SBATCH --partition=main           # Partition (job queue)
+#SBATCH --requeue                   # Return job to the queue if preempted
+#SBATCH --job-name=procgen-cleanrl         # Assign a short name to your job
+#SBATCH -N 1      # nodes requested
+#SBATCH -n 1      # tasks requested
+#SBATCH -c 8      # cores requested
+#SBATCH --mem=1000  # memory in Mb
+#SBATCH --output=slurm.%j.out  # send stdout to outfile
+#SBATCH --error=slurm.%j.err  # send stderr to errfile
+#SBATCH -t 24:00:00  # time requested in hour:minute:second
 
 source ./env/bin/activate
-python -u src/cleanrl_ppo_procgen.py --track
+python src/cleanrl_ppo_procgen.py --track=True
+deactivate
+
