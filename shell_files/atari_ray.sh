@@ -65,6 +65,6 @@ done
 # __doc_worker_ray_end__
 
 # __doc_script_start__
-python -u src/ppo_atari_ray.py --track=True --clip-coef=0.0 --kl-penalty=3.0
+python -u src/ppo_atari_ray.py --track=True --env-id="ALE/Breakout-v5"
 deactivate
 
