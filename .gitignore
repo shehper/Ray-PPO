@@ -3,3 +3,4 @@ atari-runs
 *.pem
 runs
 videos
+wandb
