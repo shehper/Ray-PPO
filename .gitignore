@@ -1,1 +1,4 @@
 env
+atari-runs
+*.pem
+runs
