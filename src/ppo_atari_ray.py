@@ -370,6 +370,7 @@ if __name__ == "__main__":
         # Collecting data through N parallel actors
         if device != "cpu":
             agent.to("cpu")
+        
         rollout_data = ray.get([env.rollout.remote(agent, logging_data) for env in envs])
 
         # Updating parameters of neural networks
